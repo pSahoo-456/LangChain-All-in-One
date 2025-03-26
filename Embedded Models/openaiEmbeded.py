@@ -5,6 +5,12 @@ load_dotenv()
 
 embedding=OpenAIEmbeddings(model='text-embedding-3-large', dimension=32)
 
-result=embedding.embed_query("Delhi is the capital of India")
+documents=[
+    'Delhi is the capital of India'
+    'Mumbai is the capital of Maharashtra'
+    'Bhubaneswar is the capital of Odidsha'
+]
+
+result=embedding.embed_documents(documents)
 
 print(str(result))
