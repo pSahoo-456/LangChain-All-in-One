@@ -26,4 +26,7 @@ python-dotenv
 numpy
 scikit-learn
 
+#Development
+Streamlit
+
 
