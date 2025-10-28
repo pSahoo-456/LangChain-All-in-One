@@ -2,33 +2,31 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
-from langchain.schema.runnable import RunnableSequence, RunnableLambda, RunnablePassthrough, RunnableParallel
+from langchain.schema.runnable import RunnableSequence, RunnableParallel, RunnablePassthrough, RunnableBranch, RunnableLambda
 
 load_dotenv()
 
-def word_count(text):
-    return len(text.split())
-
-prompt = PromptTemplate(
-    template='Write a joke about {topic}',
+prompt1 = PromptTemplate(
+    template='Write a detailed report on {topic}',
     input_variables=['topic']
+)
+
+prompt2 = PromptTemplate(
+    template='Summarize the following text \n {text}',
+    input_variables=['text']
 )
 
 model = ChatOpenAI()
 
 parser = StrOutputParser()
 
-joke_gen_chain = RunnableSequence(prompt, model, parser)
+report_gen_chain = prompt1 | model | parser
 
-parallel_chain = RunnableParallel({
-    'joke': RunnablePassthrough(),
-    'word_count': RunnableLambda(word_count)
-})
+branch_chain = RunnableBranch(
+    (lambda x: len(x.split())>300, prompt2 | model | parser),
+    RunnablePassthrough()
+)
 
-final_chain = RunnableSequence(joke_gen_chain, parallel_chain)
+final_chain = RunnableSequence(report_gen_chain, branch_chain)
 
-result = final_chain.invoke({'topic':'AI'})
-
-final_result = """{} \n word count - {}""".format(result['joke'], result['word_count'])
-
-print(final_result)
+print(final_chain.invoke({'topic':'Russia vs Ukraine'}))
